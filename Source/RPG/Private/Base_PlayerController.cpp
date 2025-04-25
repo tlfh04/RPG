@@ -4,13 +4,6 @@
 #include "Base_PlayerController.h"
 
 #include "AIController.h"
+#include "UIManager.h"
 #include "GameFramework/Character.h"
 #include "Engine/World.h"
-
-
-void ABase_PlayerController::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-

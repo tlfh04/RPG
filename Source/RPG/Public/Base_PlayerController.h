@@ -14,7 +14,5 @@ class RPG_API ABase_PlayerController : public APlayerController
 {
 	GENERATED_BODY()
 	
-protected:
-	virtual void BeginPlay() override;
 	
 };

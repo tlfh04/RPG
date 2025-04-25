@@ -31,20 +31,21 @@ public:
 
 	// 체력 (HP)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Monster Stats")
-	float MaxHP;
+	float MaxHP; // 최대 체력
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Monster Stats")
-	float CurrentHP;
-
-	// 공격력
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Monster Stats")
-	float AttackPower;
-
-	// 체력 감소 함수
-	UFUNCTION(BlueprintCallable, Category="Damage")
-	void TakeDamage(float Damage);
+	float CurrentHP; // 현재 체력
 	
-	// 적 이름 호출
-	FString GetEnemyName() const;
-		
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Monster Stats")
+	float AttackDamage; // 공격력
+	
+	UFUNCTION(BlueprintCallable, Category="Damage")
+	void TakeDamage(float Damage); // 데미지 처리 함수
+
+	//////////// GETTER ////////////
+	
+	FString GetEnemyName() const { return EnemyName; } // 이름 가져오기
+	float GetCurrentHP() const { return CurrentHP; } // 현재 체력 가져오기
+	float GetMaxHP() const { return MaxHP; } // 최대 체력 가져오기
+	
 };

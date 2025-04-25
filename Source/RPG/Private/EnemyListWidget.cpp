@@ -9,7 +9,9 @@
 #include "Base_Player.h"
 #include "EnemyButtonWidget.h"
 #include "UIManager.h"
+#include "Components/GridSlot.h"
 #include "Components/SizeBox.h"
+
 
 bool UEnemyListWidget::Initialize()
 {
@@ -21,81 +23,50 @@ bool UEnemyListWidget::Initialize()
 
 void UEnemyListWidget::ClearEnemyList()
 {
-	if (EnemyListBox)
+	if (EnemyGridPanel)
 	{
-		EnemyListBox->ClearChildren();
+		EnemyGridPanel->ClearChildren();
 	}
 }
 
-void UEnemyListWidget::AddEnemyToList(AActor* Enemy, const FString& EnemyName)
+void UEnemyListWidget::AddEnemyToGrid(AActor* Enemy, const FString& EnemyName, int32 Row, int32 Column)
 {
-	if (!Enemy || !EnemyListBox || !EnemyButtonTemplate) 
-	{
-		UE_LOG(LogTemp, Error, TEXT("UEnemyListWidget::AddEnemyToList() - EnemyListBox 또는 EnemyButtonTemplate가 NULL입니다!"));
-		return;
-	}
+	if (!Enemy || !EnemyGridPanel || !EnemyButtonTemplate) return;
 
 	// 버튼 UI 생성
 	UEnemyButtonWidget* EnemyButtonWidget = CreateWidget<UEnemyButtonWidget>(this, EnemyButtonTemplate);
-	if (!EnemyButtonWidget)
-	{
-		UE_LOG(LogTemp, Error, TEXT("UEnemyListWidget::AddEnemyToList() - 버튼 위젯 생성 실패!"));
-		return;
-	}
+	if (!EnemyButtonWidget) return;
 
 	// 버튼과 텍스트 가져오기
 	UButton* EnemyButton = Cast<UButton>(EnemyButtonWidget->GetWidgetFromName(TEXT("EnemyButton")));
 	UTextBlock* EnemyText = Cast<UTextBlock>(EnemyButtonWidget->GetWidgetFromName(TEXT("EnemyText")));
 
-	if (!EnemyButton || !EnemyText)
-	{
-		UE_LOG(LogTemp, Error, TEXT("UEnemyListWidget::AddEnemyToList() - 버튼 또는 텍스트 위젯을 찾을 수 없음!"));
-		return;
-	}
+	if (!EnemyButton || !EnemyText) return;
 
-	// 텍스트 설정
-	EnemyText->SetText(FText::FromString(EnemyName));
-
-	// 버튼 클릭 이벤트 바인딩
-	//EnemyButton->OnClicked.AddDynamic(this, &UEnemyListWidget::OnEnemyClicked);
-
-	// UI 디버깅: 버튼 추가 전/후의 리스트 개수 확인
-	int32 BeforeCount = EnemyListBox->GetChildrenCount();
-	EnemyListBox->AddChildToVerticalBox(EnemyButtonWidget);
-	int32 AfterCount = EnemyListBox->GetChildrenCount();
-
-	UE_LOG(LogTemp, Warning, TEXT("UEnemyListWidget::AddEnemyToList() - 버튼 추가 완료: %s (추가 전: %d, 추가 후: %d)"), *EnemyName, BeforeCount, AfterCount);
+	EnemyButtonWidget->SetEnemy(Enemy);
 	
-	FVector DebugLocation = Enemy->GetActorLocation();
-	DrawDebugBox(GetWorld(), DebugLocation, FVector(10, 10, 10), FColor::Red, false, 5.0f);
-
-	UE_LOG(LogTemp, Warning, TEXT("Debug 위치: X=%.2f, Y=%.2f, Z=%.2f"), DebugLocation.X, DebugLocation.Y, DebugLocation.Z);
-}
-
-void UEnemyListWidget::asdf()
-{
-	UEnemyButtonWidget* EnemyButtonWidget = CreateWidget<UEnemyButtonWidget>(GetGameInstance()->GetWorld(), EnemyButtonTemplate);
-	if (!GetGameInstance()->GetWorld())
+	// 리스트 박스에 버튼 위젯 추가
+	UGridSlot* GridSlot = Cast<UGridSlot>(EnemyGridPanel->AddChild(EnemyButtonWidget));
+	if (GridSlot)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("No"));
-		return;
+		GridSlot->SetRow(Row);
+		GridSlot->SetColumn(Column);
 	}
-
-	EnemyButtonWidget->AddToViewport();
-	EnemyListBox->AddChildToVerticalBox(EnemyButtonWidget);
-
-	UE_LOG(LogTemp, Warning, TEXT("ok"));
+	
+	AddToViewport();
 }
 
-void UEnemyListWidget::OnEnemyClicked()
+void UEnemyListWidget::AddEnemyListToGrid(const TArray<AActor*>& Enemies)
 {
-	if (!SelectedEnemy) return;
+	int32 NumColumns = 2;  // 2열
+	int32 MaxRows = 5;     // 5행
 
-	// UIManager를 통해 선택된 적을 업데이트
-	UUIManager* UIManager = UUIManager::GetInstance(this);
-	if (UIManager)
+	for (int32 i = 0; i < Enemies.Num() && i < NumColumns * MaxRows; i++)
 	{
-		UIManager->SetTargetFromUI(SelectedEnemy);
-		UE_LOG(LogTemp, Warning, TEXT("UEnemyListWidget: %s이(가) 선택되었습니다."), *SelectedEnemy->GetName());
+		AActor* Enemy = Enemies[i];
+		int32 Row = i / NumColumns;
+		int32 Col = i % NumColumns;
+
+		AddEnemyToGrid(Enemy, Enemy->GetName(), Row, Col);
 	}
 }

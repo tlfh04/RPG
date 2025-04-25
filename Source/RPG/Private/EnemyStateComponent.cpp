@@ -11,8 +11,7 @@ UEnemyStateComponent::UEnemyStateComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	// ...
-	// Init State;
-	CurrentHP = MaxHP;
+	// Init State
 	EnemyName = TEXT("Unknown Enemy");
 }
 
@@ -23,7 +22,7 @@ void UEnemyStateComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	
+	CurrentHP = MaxHP;
 }
 
 
@@ -47,9 +46,4 @@ void UEnemyStateComponent::TakeDamage(float Damage)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s HP: %f"), *EnemyName, CurrentHP);
 	}
-}
-
-FString UEnemyStateComponent::GetEnemyName() const
-{
-	return EnemyName;
 }

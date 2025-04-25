@@ -3,7 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PlayerHPWidget.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/GridPanel.h"
 #include "EnemyListWidget.generated.h"
 
 /**
@@ -19,22 +21,17 @@ public:
 
 	// 적 목록에 새로운 적 추가
 	UFUNCTION()
-	void AddEnemyToList(AActor* Enemy, const FString& EnemyName);
-	
-	UFUNCTION(BlueprintCallable)
-	void asdf();
+	void AddEnemyToGrid(AActor* Enemy, const FString& EnemyName, int32 Row, int32 Column);
+	UFUNCTION()
+	void AddEnemyListToGrid(const TArray<AActor*>& Enemies);
 
 protected:
 	virtual bool Initialize() override;
 
 private:
-	UFUNCTION()
-	void OnEnemyClicked();
 
-
-	// UI에서 적 리스트를 표시할 Vertical Box (UMG에서 설정)
 	UPROPERTY(meta = (BindWidget))
-	class UVerticalBox* EnemyListBox;
+	UGridPanel* EnemyGridPanel;
 
 	// 버튼 스타일을 저장하는 템플릿
 	UPROPERTY(EditAnywhere, Category = "UI")

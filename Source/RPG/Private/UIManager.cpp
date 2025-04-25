@@ -2,23 +2,43 @@
 
 
 #include "UIManager.h"
+#include "QuestWidget.h"
 #include "Blueprint/UserWidget.h"
 #include "EnemyListWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "Base_Player.h"
 #include "EnemyStateComponent.h"
-
-UUIManager* UUIManager::Instance = nullptr; // 초기화
+#include "PlayerHPWidget.h"
 
 void UUIManager::InitializeUI(UWorld* World)
 {
+	
+	if (!PlayerHPWidgetInstance)
+	{
+		PlayerHPWidgetInstance = CreateWidget<UUserWidget>(World, PlayerHPWidgetClass);
+		if (PlayerHPWidgetInstance)
+		{
+			PlayerHPWidgetInstance->AddToViewport();
+			PlayerHPWidgetInstance->SetVisibility(ESlateVisibility::Visible);
+		}
+	}
 	if (!EnemyListWidgetInstance)
 	{
 		EnemyListWidgetInstance = CreateWidget<UUserWidget>(World, EnemyListWidgetClass);
 		if (EnemyListWidgetInstance)
 		{
 			EnemyListWidgetInstance->AddToViewport();
-			EnemyListWidgetInstance->SetVisibility(ESlateVisibility::Visible);
+			EnemyListWidgetInstance->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		}
+	}
+	if (!QuestWidgetInstance)
+	{
+		QuestWidgetInstance = CreateWidget<UUserWidget>(World, QuestWidgetClass);
+		if (QuestWidgetInstance)
+		{
+			QuestWidgetInstance->AddToViewport();
+			ShowQuestName();
+			QuestWidgetInstance->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		}
 	}
 }
@@ -36,11 +56,48 @@ UUIManager* UUIManager::GetInstance(UObject* WorldContextObject)
 	return GameInstance ? GameInstance->GetSubsystem<UUIManager>() : nullptr;
 }
 
+void UUIManager::ShowQuestName()
+{
+	UQuestWidget* QuestWidget = Cast<UQuestWidget>(QuestWidgetInstance);
+	
+	if (!QuestWidget) return;
+	
+	QuestWidget->ShowQuestName(QuestName);
+}
+
+void UUIManager::ShowQuestProgress(int32 CurrentCount, int32 TotalCount)
+{
+	UQuestWidget* QuestWidget = Cast<UQuestWidget>(QuestWidgetInstance);
+	
+	if (!QuestWidget) return;
+
+	if (QuestWidget->AcceptQuest)
+	{
+		QuestWidget->UpdateQuestInfo(QuestContent1, CurrentCount, TotalCount);
+	}
+	if (QuestWidget->StartQuest)
+	{
+		QuestWidget->UpdateQuestInfo(QuestContent2, CurrentCount, TotalCount);
+	}
+}
+
+void UUIManager::ChangeQuestState()
+{
+	UQuestWidget* QuestWidget = Cast<UQuestWidget>(QuestWidgetInstance);
+	QuestWidget->StartQuest = true;
+}
+
+
 void UUIManager::ShowEnemyListUI()
 {
 	if (EnemyListWidgetInstance)
 	{
 		EnemyListWidgetInstance->SetVisibility(ESlateVisibility::Visible);
+	}
+
+	if (PlayerHPWidgetInstance)
+	{
+		PlayerHPWidgetInstance->SetVisibility(ESlateVisibility::Visible);
 	}
 }
 
@@ -50,43 +107,41 @@ void UUIManager::HideEnemyListUI()
 	{
 		EnemyListWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
 	}
+	
+	if (PlayerHPWidgetInstance)
+	{
+		PlayerHPWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
+	}
 }
 
 void UUIManager::UpdateEnemyList(const TArray<AActor*>& EnemyList)
 {
-	if (!EnemyListWidgetInstance)
-	{
-		UE_LOG(LogTemp, Error, TEXT("UUIManager::UpdateEnemyList() - EnemyListWidgetInstance가 NULL입니다."));
-		return;
-	}
+	if (!EnemyListWidgetInstance) return;
 
 	// UI 위젯 캐스팅
 	UEnemyListWidget* EnemyListWidget = Cast<UEnemyListWidget>(EnemyListWidgetInstance);
-	if (!EnemyListWidget)
-	{
-		UE_LOG(LogTemp, Error, TEXT("UUIManager::UpdateEnemyList() - Cast<UEnemyListWidget>() 실패!"));
-		return;
-	}
 
-	// 디버깅: 전달된 적 개수 확인
-	UE_LOG(LogTemp, Warning, TEXT("UUIManager::UpdateEnemyList() 실행 - 받은 적 개수: %d"), EnemyList.Num());
-
+	if (!EnemyListWidget) return;
+	
 	// 기존 버튼 삭제
 	EnemyListWidget->ClearEnemyList();
+	
+	EnemyListWidget->AddEnemyListToGrid(EnemyList);
+	
+}
 
-	for (AActor* Enemy : EnemyList)
+void UUIManager::UpdatePlayerHP(float CurrentHP,float MaxHP)
+{
+	if (!PlayerHPWidgetInstance)
 	{
-		if (!Enemy) continue;
-
-		UEnemyStateComponent* EnemyState = Enemy->FindComponentByClass<UEnemyStateComponent>();
-		FString EnemyName = EnemyState ? EnemyState->GetEnemyName() : TEXT("Unknown Enemy");
-
-		// 적 정보 추가
-		EnemyListWidget->AddEnemyToList(Enemy, EnemyName);
-		EnemyListWidget->asdf();
+		UE_LOG(LogTemp, Error, TEXT("플레이어 HP 위젯 객체가 없습니다!"));
+		return;
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("UUIManager::UpdateEnemyList() - 적 목록 UI 업데이트 완료."));
+	
+	if (UPlayerHPWidget* PlayerHPWidget = Cast<UPlayerHPWidget>(PlayerHPWidgetInstance))
+	{
+		PlayerHPWidget->UpdateHPBar(CurrentHP, MaxHP);
+	}
 }
 
 void UUIManager::SetTargetFromUI(AActor* SelectedEnemy)
@@ -107,4 +162,20 @@ void UUIManager::SetEnemyListWidgetClass(TSubclassOf<UUserWidget> WidgetClass)
 
 	// UI 클래스를 저장
 	EnemyListWidgetClass = WidgetClass;
+}
+
+void UUIManager::SetPlayerHPWidgetClass(TSubclassOf<UUserWidget> WidgetClass)
+{
+	if (!WidgetClass) return;
+
+	// UI 클래스를 저장
+	PlayerHPWidgetClass = WidgetClass;
+}
+
+void UUIManager::SetQuestWidgetClass(TSubclassOf<UUserWidget> WidgetClass)
+{
+	if (!WidgetClass) return;
+
+	// UI 클래스를 저장
+	QuestWidgetClass = WidgetClass;
 }
