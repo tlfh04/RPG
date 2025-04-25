@@ -12,3 +12,48 @@ Saved
 *.suo
 *.xcodeproj
 *.xcworkspace
+
+# : comments
+
+# no .a files
+*.a
+
+# but do track lib.a, even though you're ignoring .a files above
+!lib.a
+
+# only ignore the TODO file in the current directory, not subdir/TODO
+/TODO
+
+# ignore all files in the build/ directory
+build/
+
+# ignore doc/notes.txt, but not doc/server/arch.txt
+doc/*.txt
+
+# ignore all .pdf files in the doc/ directory
+doc/**/*.pdf
+
+Binaries
+DerivedDataCache
+Intermediate
+Saved
+/Content/ThirdPerson/Input/
+/Content/ThirdPerson/Maps/
+/Content/FirstPerson/
+/Content/StarterContent/
+/Content/TopDown/
+/Content/Characters/
+/Content/SevenSwordsV2/
+/Content/RamsterZ_FreeAnims_Volume1/
+/Content/SwordAnimsetPro/
+/Content/Asset/
+.vscode
+.vs
+*.VC.db
+*.opensdf
+*.opendb
+*.sdf
+*.sln
+*.suo
+*.xcodeproj
+*.xcworkspace
