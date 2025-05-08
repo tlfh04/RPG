@@ -410,7 +410,7 @@ void ABase_Player::TryBasicAttack()
 
 	float Distance = FVector::Dist(GetActorLocation(), CurrentTarget->GetActorLocation());
 
-	// 대쉬 조건
+	// 대쉬 공격 조건
 	if (!bDashOnCooldown && Distance <= DashAttackRange)
 	{
 		ChangeState(EPlayerState::Fighting);
@@ -418,6 +418,7 @@ void ABase_Player::TryBasicAttack()
 		return;
 	}
 
+	// 슬래쉬 공격 조건
 	if (!bSlashOnCooldown && Distance <= BasicAttackRange)
 	{
 		ChangeState(EPlayerState::Fighting);
@@ -524,7 +525,6 @@ void ABase_Player::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted
 	{
 		ChangeState(EPlayerState::Fighting);
 		TryBasicAttack(); // 계속 공격
-		UE_LOG(LogTemp, Log, TEXT("여기니?"));
 	}
 	else
 	{

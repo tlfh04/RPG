@@ -29,7 +29,7 @@ public:
 	// UI 초기화
 	void InitializeUI(UWorld* World);
 
-	// UIManager 인스턴스를 가져오는 함수 (싱글톤처럼 사용 가능)
+	// UIManager 인스턴스를 가져오는 함수
 	static UUIManager* GetInstance(UObject* WorldContextObject);
 	
 	void ShowEnemyListUI(); // UI 표시
